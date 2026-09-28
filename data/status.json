@@ -1,10 +1,10 @@
 {
   "ok": true,
-  "last_attempt_utc": "2026-09-28T11:00:00+00:00",
-  "last_success_utc": "2026-09-28T11:00:00+00:00",
-  "message": "Seed data",
+  "last_attempt_utc": "2026-09-28T19:59:11+00:00",
+  "last_success_utc": "2026-09-28T19:59:11+00:00",
+  "message": "OK",
   "error": null,
-  "snapshot": "2026-09-28 AM",
-  "method": "seed",
+  "snapshot": "2026-09-28 PM",
+  "method": "requests",
   "notes": []
 }
