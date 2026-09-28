@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Risky accounts tracker</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #122027;
+    --panel: #182a33;
+    --rule: #28404b;
+    --text: #e3ecef;
+    --muted: #8ea5ae;
+    --gain: #46c48b;
+    --loss: #f0595e;
+    --warn: #efb440;
+    --font: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 1080px; margin: 0 auto; padding: 28px 20px 48px; }
+  a { color: var(--text); }
+  :focus-visible { outline: 2px solid var(--warn); outline-offset: 2px; }
+
+  header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
+  h1 { font-size: 22px; font-weight: 700; font-stretch: 112%; margin: 0; letter-spacing: -0.01em; }
+  .updated { color: var(--muted); font-size: 13px; }
+  h2 { font-size: 17px; font-weight: 650; font-stretch: 105%; margin: 44px 0 12px; }
+
+  .banner { margin-top: 16px; padding: 10px 14px; border-left: 3px solid var(--warn); background: #22312a00; background: rgba(239,180,64,.08); font-size: 14px; }
+  .banner.error { border-color: var(--loss); background: rgba(240,89,94,.09); }
+  .banner p { margin: 0; }
+  .banner p + p { margin-top: 4px; color: var(--muted); }
+
+  /* The ledger: deposit, balance, withdrawals, summed like an account statement */
+  .ledger { margin-top: 28px; max-width: 640px; }
+  .ledger-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 4px 0; font-size: 17px; }
+  .ledger-row span:first-child { color: var(--muted); }
+  .ledger-row .v { font-stretch: 110%; font-weight: 500; }
+  .ledger-total { border-top: 2px solid var(--text); margin-top: 8px; padding-top: 12px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; }
+  .ledger-total .label { font-size: 17px; font-weight: 600; }
+  .ledger-total .big { font-size: clamp(40px, 9vw, 68px); font-weight: 800; font-stretch: 125%; line-height: 1.05; letter-spacing: -0.02em; }
+  .ledger-total .pct { font-size: 20px; font-weight: 600; font-stretch: 115%; }
+  .ledger-total .right { text-align: right; margin-left: auto; }
+
+  .stats { margin-top: 28px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+  .stat { padding: 14px 12px 14px 0; }
+  .stat b { display: block; font-size: 22px; font-weight: 700; font-stretch: 112%; }
+  .stat span { color: var(--muted); font-size: 13px; }
+
+  .gain { color: var(--gain); }
+  .loss { color: var(--loss); }
+  .muted { color: var(--muted); }
+
+  .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--rule); border-radius: 6px; background: var(--panel); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; white-space: nowrap; }
+  th, td { padding: 9px 12px; text-align: right; border-bottom: 1px solid var(--rule); }
+  th { color: var(--muted); font-weight: 500; font-size: 13px; position: sticky; top: 0; background: var(--panel); }
+  th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--panel); }
+  td.l, th.l { text-align: left; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tr.blown td { color: var(--muted); }
+  tr.blown td:first-child { text-decoration: line-through; text-decoration-color: var(--loss); }
+  tr.near td:first-child { box-shadow: inset 3px 0 0 var(--warn); }
+
+  .chip { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; border: 1px solid currentColor; }
+  .chip.active { color: var(--gain); }
+  .chip.blown { color: var(--loss); }
+  .chip.missing, .chip.near { color: var(--warn); }
+  .flag { color: var(--warn); font-size: 12px; white-space: normal; min-width: 160px; text-align: left; }
+
+  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .chart { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 14px; }
+  .chart h3 { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+  .chart .box { position: relative; height: 240px; }
+  @media (max-width: 760px) { .charts { grid-template-columns: 1fr; } }
+
+  .toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin: 44px 0 12px; }
+  .toolbar h2 { margin: 0; }
+  .toggle { display: inline-flex; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+  .toggle button { font: inherit; font-size: 13px; background: transparent; color: var(--muted); border: 0; padding: 6px 12px; cursor: pointer; }
+  .toggle button[aria-pressed="true"] { background: var(--rule); color: var(--text); }
+
+  footer { margin-top: 44px; padding-top: 16px; border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; color: var(--muted); font-size: 13px; }
+  .btn { font: inherit; font-size: 14px; font-weight: 600; background: var(--text); color: var(--bg); border: 0; border-radius: 6px; padding: 9px 16px; cursor: pointer; }
+  .btn:hover { background: #fff; }
+  .note { color: var(--muted); font-size: 13px; margin-top: 10px; max-width: 72ch; }
+  #loading { color: var(--muted); margin-top: 40px; }
+  @media (max-width: 520px) {
+    main { padding: 20px 14px 40px; }
+    .ledger-row { font-size: 15px; }
+    .ledger-total .right { text-align: left; margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Risky accounts tracker</h1>
+    <div class="updated" id="updated">Loading...</div>
+  </header>
+  <div id="banners"></div>
+  <div id="loading">Loading data...</div>
+
+  <div id="app" hidden>
+    <section class="ledger" aria-label="Totals">
+      <div class="ledger-row"><span>Total deposited</span><span class="v" id="l-dep"></span></div>
+      <div class="ledger-row"><span>Total closed balance</span><span class="v" id="l-bal"></span></div>
+      <div class="ledger-row"><span>Withdrawals</span><span class="v" id="l-wd"></span></div>
+      <div class="ledger-total">
+        <span class="label">Final net gain / loss</span>
+        <div class="right">
+          <div class="big" id="l-net"></div>
+          <div class="pct" id="l-pct"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats" id="stats" aria-label="Summary"></section>
+
+    <h2>Accounts</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr>
+          <th>Account</th><th class="l">Status</th><th>Open date</th><th>Days running</th>
+          <th>Deposit</th><th>Closed balance</th><th>Floating (info)</th><th>Net P/L</th>
+          <th>Return</th><th>Avg / day</th><th>Max DD</th>
+        </tr></thead>
+        <tbody id="acc-body"></tbody>
+      </table>
+    </div>
+    <p class="note">Gain counts the closed balance only: net P/L = closed balance + withdrawals − $1,000 deposit. Floating P/L is shown for information and never included in totals. Accounts with a closed balance under 20% of the deposit are marked near blow-out.</p>
+
+    <div class="charts" style="margin-top:44px">
+      <div class="chart"><h3>Cumulative net P/L</h3><div class="box"><canvas id="c-line" aria-label="Cumulative net profit and loss over time" role="img"></canvas></div></div>
+      <div class="chart"><h3 id="bar-title">Gain / loss per run</h3><div class="box"><canvas id="c-bar" aria-label="Gain or loss per snapshot" role="img"></canvas></div></div>
+    </div>
+
+    <div class="toolbar">
+      <h2>History</h2>
+      <div class="toggle" role="group" aria-label="History view">
+        <button type="button" data-mode="run" aria-pressed="true">Every run</button>
+        <button type="button" data-mode="day" aria-pressed="false">One row per day</button>
+      </div>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr>
+          <th>Date</th><th>Accounts</th><th>Total deposited</th><th>Closed balance</th>
+          <th>Cumulative net P/L</th><th id="chg-h">Change vs previous</th><th>Change %</th><th class="l">Flag</th>
+        </tr></thead>
+        <tbody id="hist-body"></tbody>
+      </table>
+    </div>
+
+    <footer>
+      <button class="btn" id="dl" type="button">Download CSV</button>
+      <span id="foot-upd"></span>
+      <span>Source: <a href="https://algotradingspace.com/trading-stats/live" rel="noopener">algotradingspace.com live stats</a></span>
+    </footer>
+  </div>
+</main>
+
+<script>
+const BRANCH = "main";   // change if your repository uses a different branch name
+
+// Data is read straight from the repository (always the newest commit),
+// falling back to the copy published with the page.
+function dataBases() {
+  const bases = [];
+  const host = location.hostname;
+  if (host.endsWith(".github.io")) {
+    const user = host.split(".")[0];
+    const first = location.pathname.split("/").filter(Boolean)[0];
+    const repo = first && !first.endsWith(".html") ? first : `${user}.github.io`;
+    bases.push(`https://raw.githubusercontent.com/${user}/${repo}/${BRANCH}/data/`);
+  }
+  bases.push("data/");
+  return bases;
+}
+
+async function getFile(name, asJson) {
+  let lastErr;
+  for (const base of dataBases()) {
+    try {
+      const r = await fetch(`${base}${name}?t=${Date.now()}`, { cache: "no-store" });
+      if (!r.ok) throw new Error(`${name}: HTTP ${r.status}`);
+      return asJson ? await r.json() : await r.text();
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr;
+}
+
+function parseCSV(text) {
+  const rows = []; let row = [], field = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (c === '"') q = false;
+      else field += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(field); field = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(field); field = "";
+      if (row.length > 1 || row[0] !== "") rows.push(row);
+      row = [];
+    } else field += c;
+  }
+  if (field !== "" || row.length) { row.push(field); rows.push(row); }
+  const head = rows.shift() || [];
+  return rows.map(r => Object.fromEntries(head.map((h, i) => [h, r[i] ?? ""])));
+}
+
+const n = v => (v === null || v === undefined || v === "" ? null : Number(v));
+const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+const money = v => (v === null || isNaN(v) ? "–" : usd.format(v));
+const signed = v => (v === null || isNaN(v) ? "–" : (v > 0 ? "+" : v < 0 ? "−" : "") + usd.format(Math.abs(v)));
+const pct = (v, sign = true) => (v === null || !isFinite(v) ? "–" : (sign && v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(2) + "%");
+const cls = v => (v > 0 ? "gain" : v < 0 ? "loss" : "");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const dayDiff = (a, b) => Math.round((new Date(b + "T00:00:00Z") - new Date(a + "T00:00:00Z")) / 86400000);
+const fmtTime = iso => {
+  if (!iso) return "–";
+  const d = new Date(iso);
+  const ny = d.toLocaleString("en-US", { timeZone: "America/New_York", dateStyle: "medium", timeStyle: "short" });
+  return `${ny} New York`;
+};
+
+let STATE, LOG, STATUS, charts = {};
+
+function netOf(a) { return (n(a.balance) || 0) + (n(a.withdrawals) || 0) - (n(a.deposit) || 1000); }
+
+function renderBanners() {
+  const out = [];
+  if (STATUS && STATUS.ok === false) {
+    out.push(`<div class="banner error"><p>The last update failed (${esc(fmtTime(STATUS.last_attempt_utc))}). Showing data from ${esc(fmtTime(STATUS.last_success_utc))}.</p><p>${esc(STATUS.error || "")}</p></div>`);
+  }
+  const flag = STATE.flag;
+  if (flag && flag !== "Seed data") {
+    out.push(`<div class="banner"><p>${esc(flag)}.</p>${flag.startsWith("No change") ? "<p>Every figure matches the previous run. On weekdays this can mean the site served a cached copy.</p>" : ""}</div>`);
+  }
+  const notes = (STATE.notes || []).filter(x => !/^Seed/.test(x));
+  if (notes.length) out.push(`<div class="banner">${notes.map(x => `<p>${esc(x)}</p>`).join("")}</div>`);
+  document.getElementById("banners").innerHTML = out.join("");
+}
+
+function renderHeadline() {
+  const accs = STATE.accounts;
+  const asOf = STATE.snapshot.slice(0, 10);
+  const dep = accs.reduce((s, a) => s + (n(a.deposit) || 1000), 0);
+  const bal = accs.reduce((s, a) => s + (n(a.balance) || 0), 0);
+  const wd = accs.reduce((s, a) => s + (n(a.withdrawals) || 0), 0);
+  const net = bal + wd - dep;
+  const blown = accs.filter(a => a.status === "Blown").length;
+  const live = accs.filter(a => a.status !== "Blown");
+  const inProfit = live.filter(a => netOf(a) > 0).length;
+  const inLoss = live.filter(a => netOf(a) < 0).length;
+  const first = accs.map(a => a.open_date).sort()[0];
+  const spanDays = Math.max(1, dayDiff(first, asOf));
+
+  document.getElementById("l-dep").textContent = money(dep);
+  document.getElementById("l-bal").textContent = money(bal);
+  document.getElementById("l-wd").textContent = money(wd);
+  const netEl = document.getElementById("l-net");
+  netEl.textContent = signed(net); netEl.className = "big " + cls(net);
+  const pEl = document.getElementById("l-pct");
+  pEl.textContent = `${pct(net / dep * 100)} of deposits`; pEl.className = "pct " + cls(net);
+
+  const perDay = net / spanDays;
+  const stat = (v, label, c = "") => `<div class="stat"><b class="${c}">${v}</b><span>${label}</span></div>`;
+  document.getElementById("stats").innerHTML =
+    stat(inProfit, "Accounts in profit", inProfit ? "gain" : "") +
+    stat(inLoss, "Accounts in loss", inLoss ? "loss" : "") +
+    stat(blown, "Accounts blown", blown ? "loss" : "") +
+    stat(pct(blown / accs.length * 100, false), `Blow-out rate (${blown} of ${accs.length})`) +
+    stat(signed(perDay), `Average per day since ${first}`, cls(perDay));
+}
+
+function renderAccounts() {
+  const asOf = STATE.snapshot.slice(0, 10);
+  const order = { Active: 0, Missing: 1, Blown: 2 };
+  const accs = [...STATE.accounts].sort((a, b) => (order[a.status] - order[b.status]) || a.open_date.localeCompare(b.open_date));
+  document.getElementById("acc-body").innerHTML = accs.map(a => {
+    const dep = n(a.deposit) || 1000, bal = n(a.balance) || 0, net = netOf(a);
+    const end = a.status === "Blown" && a.blown_date ? a.blown_date : asOf;
+    const days = Math.max(1, dayDiff(a.open_date, end));
+    const near = a.status !== "Blown" && bal < dep * 0.2;
+    const chip = a.status === "Blown" ? `<span class="chip blown" title="${esc(a.blown_reason || "")}">Blown ${esc(a.blown_date || "")}</span>`
+      : a.status === "Missing" ? `<span class="chip missing" title="Not listed on the last run">Not listed</span>`
+      : near ? `<span class="chip near">Near blow-out</span>` : `<span class="chip active">Active</span>`;
+    const title = esc([a.label, a.broker, a.type].filter(Boolean).join(" · "));
+    return `<tr class="${a.status === "Blown" ? "blown" : ""} ${near ? "near" : ""}">
+      <td title="${title}">${esc(a.name)}</td><td class="l">${chip}</td>
+      <td>${esc(a.open_date)}</td><td>${days}</td>
+      <td>${money(dep)}</td><td>${money(bal)}</td>
+      <td class="muted">${a.status === "Blown" ? "–" : signed(n(a.floating))}</td>
+      <td class="${cls(net)}">${signed(net)}</td>
+      <td class="${cls(net)}">${pct(net / dep * 100)}</td>
+      <td class="${cls(net)}">${signed(net / days)}</td>
+      <td>${n(a.max_dd_pct) === null ? "–" : pct(n(a.max_dd_pct), false)}</td></tr>`;
+  }).join("");
+}
+
+function snapshots() {
+  const map = new Map();
+  for (const r of LOG) {
+    if (!map.has(r.snapshot)) map.set(r.snapshot, { snapshot: r.snapshot, date: r.date_ny, session: r.session, rows: [], flag: r.flag });
+    map.get(r.snapshot).rows.push(r);
+  }
+  const list = [...map.values()];
+  for (const s of list) {
+    s.accounts = s.rows.length;
+    s.dep = s.rows.reduce((t, r) => t + (n(r.deposit) || 0), 0);
+    s.bal = s.rows.reduce((t, r) => t + (n(r.balance) || 0), 0);
+    s.wd = s.rows.reduce((t, r) => t + (n(r.withdrawals) || 0), 0);
+    s.net = s.bal + s.wd - s.dep;
+  }
+  return list;
+}
+
+function withChanges(list) {
+  return list.map((s, i) => {
+    const prev = list[i - 1];
+    const chg = prev ? s.net - prev.net : null;
+    const base = prev ? prev.bal + prev.wd : null;
+    return { ...s, chg, chgPct: prev && base ? chg / base * 100 : null };
+  });
+}
+
+let MODE = "run";
+function renderHistory() {
+  let list = snapshots();
+  if (MODE === "day") {
+    const byDay = new Map(); for (const s of list) byDay.set(s.date, s);  // last run of each day
+    list = [...byDay.values()];
+  }
+  list = withChanges(list);
+  document.getElementById("chg-h").textContent = MODE === "day" ? "Day gain / loss" : "Change vs previous run";
+  document.getElementById("bar-title").textContent = MODE === "day" ? "Gain / loss per day" : "Gain / loss per run";
+  document.getElementById("hist-body").innerHTML = [...list].reverse().map(s => `<tr>
+    <td>${esc(MODE === "day" ? s.date : s.snapshot)}</td><td>${s.accounts}</td>
+    <td>${money(s.dep)}</td><td>${money(s.bal)}</td>
+    <td class="${cls(s.net)}">${signed(s.net)}</td>
+    <td class="${cls(s.chg)}">${s.chg === null ? "–" : signed(s.chg)}</td>
+    <td class="${cls(s.chg)}">${s.chgPct === null ? "–" : pct(s.chgPct)}</td>
+    <td class="flag">${esc(s.flag || "")}</td></tr>`).join("");
+  renderCharts(list);
+}
+
+function renderCharts(list) {
+  if (!window.Chart) return;
+  const css = getComputedStyle(document.documentElement);
+  const gain = css.getPropertyValue("--gain").trim(), loss = css.getPropertyValue("--loss").trim();
+  const muted = css.getPropertyValue("--muted").trim(), rule = css.getPropertyValue("--rule").trim();
+  const labels = list.map(s => MODE === "day" ? s.date.slice(5) : `${s.date.slice(5)} ${s.session}`);
+  Chart.defaults.color = muted; Chart.defaults.font.family = "Archivo, sans-serif";
+  const scales = { x: { grid: { color: rule } }, y: { grid: { color: rule }, ticks: { callback: v => usd.format(v).replace(".00", "") } } };
+  const tooltip = { callbacks: { label: c => signed(c.parsed.y) } };
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  for (const k of Object.keys(charts)) charts[k].destroy();
+  const lastNet = list.length ? list[list.length - 1].net : 0;
+  charts.line = new Chart(document.getElementById("c-line"), {
+    type: "line",
+    data: { labels, datasets: [{ data: list.map(s => s.net), borderColor: lastNet >= 0 ? gain : loss, backgroundColor: lastNet >= 0 ? gain : loss, pointRadius: list.length > 40 ? 0 : 3, tension: 0, borderWidth: 2 }] },
+    options: { maintainAspectRatio: false, animation: reduce ? false : undefined, plugins: { legend: { display: false }, tooltip }, scales }
+  });
+  const chg = list.map(s => s.chg ?? 0);
+  charts.bar = new Chart(document.getElementById("c-bar"), {
+    type: "bar",
+    data: { labels, datasets: [{ data: chg, backgroundColor: chg.map(v => v >= 0 ? gain : loss), borderRadius: 2 }] },
+    options: { maintainAspectRatio: false, animation: reduce ? false : undefined, plugins: { legend: { display: false }, tooltip }, scales }
+  });
+}
+
+document.querySelectorAll(".toggle button").forEach(b => b.addEventListener("click", () => {
+  MODE = b.dataset.mode;
+  document.querySelectorAll(".toggle button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  renderHistory();
+}));
+
+let CSV_TEXT = "";
+document.getElementById("dl").addEventListener("click", () => {
+  const url = URL.createObjectURL(new Blob([CSV_TEXT], { type: "text/csv" }));
+  const a = Object.assign(document.createElement("a"), { href: url, download: "daily_log.csv" });
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+});
+
+(async function init() {
+  try {
+    const [state, csv, status] = await Promise.all([
+      getFile("accounts.json", true),
+      getFile("daily_log.csv", false),
+      getFile("status.json", true).catch(() => null),
+    ]);
+    STATE = state; CSV_TEXT = csv; LOG = parseCSV(csv); STATUS = status;
+    const upd = `Last updated ${fmtTime(STATE.updated_utc)}`;
+    document.getElementById("updated").textContent = upd;
+    document.getElementById("foot-upd").textContent = `${upd} (run ${STATE.snapshot})`;
+    document.getElementById("loading").hidden = true;
+    document.getElementById("app").hidden = false;   // show first so the charts can measure their size
+    renderBanners(); renderHeadline(); renderAccounts(); renderHistory();
+  } catch (e) {
+    document.getElementById("updated").textContent = "";
+    document.getElementById("loading").innerHTML = `Could not load the data files (${esc(e.message)}). Check that the data folder exists in the repository and that GitHub Pages is switched on.`;
+  }
+})();
+</script>
+</body>
+</html>

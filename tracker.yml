@@ -1,0 +1,80 @@
+name: Risky tracker
+
+on:
+  schedule:
+    # GitHub cron is UTC only. Each New York time needs two entries:
+    # one for summer (EDT = UTC-4) and one for winter (EST = UTC-5).
+    # scraper/should_run.py lets the right one through and skips the other.
+    - cron: "0 11 * * *"   # 7:00 AM New York in summer
+    - cron: "0 12 * * *"   # 7:00 AM New York in winter
+    - cron: "0 23 * * *"   # 7:00 PM New York in summer
+    - cron: "0 0 * * *"    # 7:00 PM New York in winter
+  workflow_dispatch:       # "Run workflow" button for manual runs
+
+permissions:
+  contents: write          # lets the workflow commit the data files
+
+concurrency:
+  group: risky-tracker     # never run two copies at once
+  cancel-in-progress: false
+
+env:
+  RUN_TIMES_NY: "07:00,19:00"   # must match the cron lines above (New York time, 24h)
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Get repository files
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Check this is a New York run time
+        id: gate
+        run: python scraper/should_run.py "${{ github.event_name }}" "${{ github.event.schedule }}"
+
+      - name: Install requirements
+        if: steps.gate.outputs.run == 'true'
+        run: pip install -r requirements.txt
+
+      - name: Read the site
+        id: fast
+        if: steps.gate.outputs.run == 'true'
+        continue-on-error: true
+        run: python scraper/scrape.py
+
+      - name: Install browser (only if the fast read failed)
+        if: steps.gate.outputs.run == 'true' && steps.fast.outcome == 'failure'
+        run: |
+          pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Read the site with a browser (fallback)
+        id: browser
+        if: steps.gate.outputs.run == 'true' && steps.fast.outcome == 'failure'
+        run: python scraper/scrape.py --browser
+
+      - name: Save data to the repository
+        if: always() && steps.gate.outputs.run == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "No data changes to save."
+            exit 0
+          fi
+          git commit -m "Tracker update $(date -u +'%Y-%m-%d %H:%M UTC')"
+          for i in 1 2 3; do
+            if git pull --rebase && git push; then exit 0; fi
+            echo "Push failed (attempt $i), retrying in 15s..."
+            sleep 15
+          done
+          echo "::error title=Could not save data::git push failed 3 times"
+          exit 1
