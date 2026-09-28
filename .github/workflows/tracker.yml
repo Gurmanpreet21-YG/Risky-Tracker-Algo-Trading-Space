@@ -2,24 +2,21 @@ name: Risky tracker
 
 on:
   schedule:
-    # GitHub cron is UTC only. Each New York time needs two entries:
-    # one for summer (EDT = UTC-4) and one for winter (EST = UTC-5).
-    # scraper/should_run.py lets the right one through and skips the other.
-    - cron: "0 11 * * *"   # 7:00 AM New York in summer
-    - cron: "0 12 * * *"   # 7:00 AM New York in winter
-    - cron: "0 23 * * *"   # 7:00 PM New York in summer
-    - cron: "0 0 * * *"    # 7:00 PM New York in winter
-  workflow_dispatch:       # "Run workflow" button for manual runs
+    - cron: "0 11 * * *"
+    - cron: "0 12 * * *"
+    - cron: "0 23 * * *"
+    - cron: "0 0 * * *"
+  workflow_dispatch:
 
 permissions:
-  contents: write          # lets the workflow commit the data files
+  contents: write
 
 concurrency:
-  group: risky-tracker     # never run two copies at once
+  group: risky-tracker
   cancel-in-progress: false
 
 env:
-  RUN_TIMES_NY: "07:00,19:00"   # must match the cron lines above (New York time, 24h)
+  RUN_TIMES_NY: "07:00,19:00"
 
 jobs:
   track:
@@ -27,10 +24,10 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Get repository files
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
