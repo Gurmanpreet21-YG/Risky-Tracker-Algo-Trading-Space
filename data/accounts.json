@@ -1,7 +1,7 @@
 {
-  "updated_utc": "2026-10-02T23:11:29+00:00",
-  "updated_ny": "2026-10-02T19:11:29-04:00",
-  "snapshot": "2026-10-02 PM",
+  "updated_utc": "2026-10-03T12:49:35+00:00",
+  "updated_ny": "2026-10-03T08:49:35-04:00",
+  "snapshot": "2026-10-03 AM",
   "flag": "",
   "notes": [],
   "source": "https://algotradingspace.com/trading-stats/live",
@@ -27,7 +27,7 @@
       "broker": "IC Markets",
       "site_deposit": 1000.0,
       "gain_pct": 134.76,
-      "monthly_pct": 50.71,
+      "monthly_pct": 49.37,
       "trades": 48,
       "days": 43,
       "profit_factor": 3.38,
@@ -39,7 +39,7 @@
       "blown_reason": null,
       "net_pl": 1347.63,
       "site_name": "Risky 1 - Gold Reaper",
-      "last_seen": "2026-10-02T23:11:29+00:00"
+      "last_seen": "2026-10-03T12:49:35+00:00"
     },
     {
       "key": "2100156551",
@@ -85,9 +85,9 @@
       "broker": "IC Markets",
       "site_deposit": 1000.0,
       "gain_pct": 51.98,
-      "monthly_pct": 49.94,
+      "monthly_pct": 48.05,
       "trades": 73,
-      "days": 31,
+      "days": 32,
       "profit_factor": 4.67,
       "max_dd_pct": 11.85,
       "first_seen": "2026-09-28",
@@ -97,7 +97,7 @@
       "blown_reason": null,
       "net_pl": 519.79,
       "site_name": "Risky 3 - Gold Phanthom + Dark Nova",
-      "last_seen": "2026-10-02T23:11:29+00:00"
+      "last_seen": "2026-10-03T12:49:35+00:00"
     },
     {
       "key": "532914",
@@ -115,9 +115,9 @@
       "broker": "BlackBull",
       "site_deposit": 1000.0,
       "gain_pct": 20.42,
-      "monthly_pct": 26.14,
+      "monthly_pct": 24.97,
       "trades": 25,
-      "days": 24,
+      "days": 25,
       "profit_factor": 7.21,
       "max_dd_pct": 8.9,
       "first_seen": "2026-09-28",
@@ -127,7 +127,7 @@
       "blown_reason": null,
       "net_pl": 204.16,
       "site_name": "Risky 4 - Happy Index + MM Duo",
-      "last_seen": "2026-10-02T23:11:29+00:00"
+      "last_seen": "2026-10-03T12:49:35+00:00"
     },
     {
       "key": "8110804",
@@ -145,9 +145,9 @@
       "broker": "IC Markets",
       "site_deposit": 1000.0,
       "gain_pct": 22.22,
-      "monthly_pct": 42.49,
+      "monthly_pct": 39.72,
       "trades": 16,
-      "days": 17,
+      "days": 18,
       "profit_factor": 23.22,
       "max_dd_pct": 20.87,
       "first_seen": "2026-09-28",
@@ -157,7 +157,7 @@
       "blown_reason": null,
       "net_pl": 222.23,
       "site_name": "Risky 5 - WallStreet Recovery Pro + Happy Crude Oil",
-      "last_seen": "2026-10-02T23:11:29+00:00"
+      "last_seen": "2026-10-03T12:49:35+00:00"
     },
     {
       "key": "2100160020",
@@ -175,9 +175,9 @@
       "broker": "BlackBull",
       "site_deposit": 1000.0,
       "gain_pct": 15.84,
-      "monthly_pct": 141.67,
+      "monthly_pct": 108.62,
       "trades": 38,
-      "days": 5,
+      "days": 6,
       "profit_factor": 3.58,
       "max_dd_pct": 19.35,
       "first_seen": "2026-09-28",
@@ -187,7 +187,7 @@
       "blown_reason": null,
       "net_pl": 158.43,
       "site_name": "Risky 2 - EuroStable + JapanStrike (2nd)",
-      "last_seen": "2026-10-02T23:11:29+00:00"
+      "last_seen": "2026-10-03T12:49:35+00:00"
     }
   ]
 }
