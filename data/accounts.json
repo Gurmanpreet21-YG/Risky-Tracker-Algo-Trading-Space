@@ -1,6 +1,6 @@
 {
-  "updated_utc": "2026-10-04T17:36:09+00:00",
-  "updated_ny": "2026-10-04T13:36:09-04:00",
+  "updated_utc": "2026-10-04T23:11:58+00:00",
+  "updated_ny": "2026-10-04T19:11:58-04:00",
   "snapshot": "2026-10-04 PM",
   "flag": "",
   "notes": [],
@@ -39,7 +39,7 @@
       "blown_reason": null,
       "net_pl": 1347.63,
       "site_name": "Risky 1 - Gold Reaper",
-      "last_seen": "2026-10-04T17:36:09+00:00"
+      "last_seen": "2026-10-04T23:11:58+00:00"
     },
     {
       "key": "2100156551",
@@ -97,7 +97,7 @@
       "blown_reason": null,
       "net_pl": 519.79,
       "site_name": "Risky 3 - Gold Phanthom + Dark Nova",
-      "last_seen": "2026-10-04T17:36:09+00:00"
+      "last_seen": "2026-10-04T23:11:58+00:00"
     },
     {
       "key": "532914",
@@ -109,7 +109,7 @@
       "open_date": "2026-09-08",
       "deposit": 1000.0,
       "balance": 1204.16,
-      "floating": -47.31,
+      "floating": -58.91,
       "withdrawals": 0.0,
       "type": "Grid / Martingale",
       "broker": "BlackBull",
@@ -127,7 +127,7 @@
       "blown_reason": null,
       "net_pl": 204.16,
       "site_name": "Risky 4 - Happy Index + MM Duo",
-      "last_seen": "2026-10-04T17:36:09+00:00"
+      "last_seen": "2026-10-04T23:11:58+00:00"
     },
     {
       "key": "8110804",
@@ -157,7 +157,7 @@
       "blown_reason": null,
       "net_pl": 222.23,
       "site_name": "Risky 5 - WallStreet Recovery Pro + Happy Crude Oil",
-      "last_seen": "2026-10-04T17:36:09+00:00"
+      "last_seen": "2026-10-04T23:11:58+00:00"
     },
     {
       "key": "2100160020",
@@ -168,26 +168,26 @@
       "status": "Active",
       "open_date": "2026-09-27",
       "deposit": 1000.0,
-      "balance": 1158.43,
-      "floating": 0.07,
+      "balance": 1160.15,
+      "floating": 0.0,
       "withdrawals": 0.0,
       "type": "Grid",
       "broker": "BlackBull",
       "site_deposit": 1000.0,
-      "gain_pct": 15.84,
+      "gain_pct": 16.02,
       "monthly_pct": 87.81,
-      "trades": 38,
+      "trades": 39,
       "days": 7,
-      "profit_factor": 3.58,
+      "profit_factor": 3.61,
       "max_dd_pct": 19.35,
       "first_seen": "2026-09-28",
       "missing_runs": 0,
       "missing_since": null,
       "blown_date": null,
       "blown_reason": null,
-      "net_pl": 158.43,
+      "net_pl": 160.15,
       "site_name": "Risky 2 - EuroStable + JapanStrike (2nd)",
-      "last_seen": "2026-10-04T17:36:09+00:00"
+      "last_seen": "2026-10-04T23:11:58+00:00"
     }
   ]
 }
