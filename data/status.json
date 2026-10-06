@@ -1,10 +1,12 @@
 {
   "ok": true,
-  "last_attempt_utc": "2026-10-05T23:12:18+00:00",
-  "last_success_utc": "2026-10-05T23:12:18+00:00",
+  "last_attempt_utc": "2026-10-06T11:11:40+00:00",
+  "last_success_utc": "2026-10-06T11:11:40+00:00",
   "message": "OK",
   "error": null,
-  "snapshot": "2026-10-05 PM",
+  "snapshot": "2026-10-06 AM",
   "method": "requests",
-  "notes": []
+  "notes": [
+    "Risky 1 blown (balance under $50)"
+  ]
 }
