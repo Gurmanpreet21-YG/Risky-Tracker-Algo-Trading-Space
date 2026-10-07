@@ -1,15 +1,15 @@
 {
   "ok": true,
-  "last_attempt_utc": "2026-10-07T11:11:42+00:00",
-  "last_success_utc": "2026-10-07T11:11:42+00:00",
+  "last_attempt_utc": "2026-10-07T23:11:31+00:00",
+  "last_success_utc": "2026-10-07T23:11:31+00:00",
   "message": "OK",
   "error": null,
-  "snapshot": "2026-10-07 AM",
+  "snapshot": "2026-10-07 PM",
   "method": "requests",
   "notes": [
     "Risky 1 is still listed but was already Blown - ignored",
-    "Risky 8 not listed this run - will be marked Blown if still missing next run",
-    "Risky 7 not listed this run - will be marked Blown if still missing next run",
-    "Risky 6 not listed this run - will be marked Blown if still missing next run"
+    "Risky 8 blown (no longer listed)",
+    "Risky 7 blown (no longer listed)",
+    "Risky 6 blown (no longer listed)"
   ]
 }
