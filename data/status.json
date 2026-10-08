@@ -1,10 +1,10 @@
 {
   "ok": true,
-  "last_attempt_utc": "2026-10-08T11:12:06+00:00",
-  "last_success_utc": "2026-10-08T11:12:06+00:00",
+  "last_attempt_utc": "2026-10-08T23:13:56+00:00",
+  "last_success_utc": "2026-10-08T23:13:56+00:00",
   "message": "OK",
   "error": null,
-  "snapshot": "2026-10-08 AM",
+  "snapshot": "2026-10-08 PM",
   "method": "requests",
   "notes": [
     "Risky 1 is still listed but was already Blown - ignored"
